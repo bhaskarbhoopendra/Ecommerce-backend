@@ -243,17 +243,6 @@ exports.listBySearch = (req, res) => {
             });
         });
 };
-// exports.init =(req,res,next)=>{
-//     // creating the energy here to send the data
-//     const data= {};
-//     data.data[0].then(response=>{
-//         if(response.error){
-//             setError{
-
-//             }
-//         }
-//     })
-// }
 
 exports.photo = (req, res, next) => {
     if (req.product.photo.data) {
@@ -263,17 +252,13 @@ exports.photo = (req, res, next) => {
     next();
 };
 
-exports.listSearch = (req, res) => {
-  
-    const query = {};
-    
+exports.listSearch = (req, res) => {  
+    const query = {};    
     if (req.query.search) {
-        query.name = { $regex: req.query.search, $options: "i" };
-        
+        query.name = { $regex: req.query.search, $options: "i" };        
         if (req.query.category && req.query.category != "All") {
             query.category = req.query.category;
-        }
-       
+        }       
         Product.find(query, (err, products) => {
             if (err) {
                 return res.status(400).json({
@@ -285,4 +270,23 @@ exports.listSearch = (req, res) => {
     }
 };
 
+
+exports.decreaseQuantity =(req,res,next)=>{
+    let bulkOps = req.body.order.products.map((item)=>{
+        return{
+            updateOne:{
+                filter:{_id:item._id},
+                update:{$inc:{quantity: -item.count, sold: +item.count }}
+            }
+        }
+    })
+    Product.bulkWrite(bulkOps,{},(error,result)=>{
+      if(error){
+          return res.status(400).json({
+              error: ' Could not update the sold and quantity'
+          })
+      }
+      next();
+    })
+}
 
